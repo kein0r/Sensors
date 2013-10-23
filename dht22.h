@@ -24,21 +24,24 @@
 /*******************| Type definitions |*******************************/
 typedef enum
 {
+   DHT22State_Uninit,
    DHT22State_Init,
-   DHT22State_MCUSendStartSignal,
-   DHT22State_MCUWaitForSensorResponse,
-   DHT22State_DHTSendResponseLow,
-   DHT22State_DHTSendResponseHigh,
-   DHT22State_DHTStartTransmission,
-   DHT22State_DHTTransmit
+   DHT22State_ReadInProgress,
+   DHT22State_ReadError
 } DHT22State_t;
+
+typedef struct
+{
+  uint16 RelativeHumidity;      /*!< Operating range humidity 0-100%RH, resolution 0.1%RH */
+  sint16 Temperatur;            /*!< Operating range temperature -40~80 Celsius, resolution 0.1Celsius */
+  uint8 CRC;
+} DHT22_SensorValue_t;
 
 /*******************| Global variables |*******************************/
 
 /*******************| Function prototypes |****************************/
-void DHT22_Init(void);
-uint8 DHT22_startRead(void);
-void DHT22_MainFunction(void);
+void DHT22_init(void);
+DHT22State_t DHT22_readValues(void);
 
 #endif
 /** @}*/
