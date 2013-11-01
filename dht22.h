@@ -18,7 +18,6 @@
 #endif
 
 /* all times in ms */
-#define DHT22_MCUSENDSTARTSIGNAL_TIME           20
 #define DHT22_NUMBEROFBITSFROMSENSOR            48
    
 /*******************| Type definitions |*******************************/
@@ -27,7 +26,8 @@ typedef enum
    DHT22State_Uninit,
    DHT22State_Init,
    DHT22State_ReadInProgress,
-   DHT22State_ReadError
+   DHT22State_ReadErrorStuckAtVCC,
+   DHT22State_ReadErrorStuckAtGND,
 } DHT22State_t;
 
 typedef struct

@@ -23,7 +23,8 @@ void DHT22_init(void)
  */
 DHT22State_t DHT22_readValues(void)
 {
-  uint8 waitCounter = 0;
+  uint16 waitCounter = 0;
+  uint8 bitCounter = 0;
   /* Only if the sensor was correctly initialized a reading can be done */
   if (DHT22State == DHT22State_Init)
   {
@@ -32,9 +33,45 @@ DHT22State_t DHT22_readValues(void)
     DHT22_SetDataLineOutput();
     DHT22_WriteDataBitLow();
     delay_us(DHT22_MCUSendStartSignalTime);
-    /* step 2: Wait for sensor response */
-    DHT22_SetDataLineInput()
-    for (waitCounter = 0; waitCounter <  4; waitCounter++) ;
+    DHT22_WriteDataBitHigh();
+    DHT22_SetDataLineInput();
+    /* step 2: Wait for sensor response with low pulse and high pulse */
+    waitCounter = BOARD_TICKSPERMICROSECOND * DHT22_MCUWaitForSensorResponse;
+    while (waitCounter)
+    {
+      if (DHT22_ReadDataBit() == DHT22_DATALINE_LOW) break;
+      waitCounter--;
+    }
+    if (waitCounter == 0) {
+      DHT22State = DHT22State_ReadErrorStuckAtVCC;
+      return DHT22State;
+    }
+    waitCounter = BOARD_TICKSPERMICROSECOND * DHT22_MCUWaitForSensorResponse;
+    while (waitCounter)
+    {
+      if (DHT22_ReadDataBit() == DHT22_DATALINE_HIGH) break;
+      waitCounter--;
+    }
+    if (waitCounter == 0) {
+      DHT22State = DHT22State_ReadErrorStuckAtGND;
+      return DHT22State;
+    }
+    /* step 3: wait for start of transmission and receive all bits */
+    for (bitCounter = 0; bitCounter < DHT22_NUMBEROFBITSFROMSENSOR; bitCounter++)
+    {
+      waitCounter = BOARD_TICKSPERMICROSECOND * DHT22_MCUWaitForSensorResponse;
+      /* wait for the line to go low again */
+      while (waitCounter)
+      {
+        if (DHT22_ReadDataBit() == DHT22_DATALINE_LOW) break;
+        waitCounter--;
+      }
+      if (waitCounter == 0) {
+        DHT22State = DHT22State_ReadErrorStuckAtVCC;
+        return DHT22State;
+      }
+      
+    }
   }
   return DHT22State;
 }
