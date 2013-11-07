@@ -8,6 +8,8 @@
 
 /*******************| Global variables |*******************************/
 static DHT22State_t DHT22State = DHT22State_Uninit;
+/** TODO: check why modulo operator % is not supported here */
+static uint8 DHT22_readBuffer[DHT22_NUMBEROFBITSFROMSENSOR / 8];
 
 /*******************| Function definition |****************************/
 void DHT22_init(void)
@@ -70,8 +72,39 @@ DHT22State_t DHT22_readValues(void)
         DHT22State = DHT22State_ReadErrorStuckAtVCC;
         return DHT22State;
       }
-      
+      /* wait for the line to go high */
+      waitCounter = BOARD_TICKSPERMICROSECOND * DHT22_MCUWaitForSensorResponse;
+      /* wait for the line to go high */
+      while (waitCounter)
+      {
+        if (DHT22_ReadDataBit() == DHT22_DATALINE_HIGH) break;
+        waitCounter--;
+      }
+      if (waitCounter == 0) {
+        DHT22State = DHT22State_ReadErrorStuckAtGND;
+        return DHT22State;
+      }
+      /* now count high time */
+      waitCounter = 0;
+      while ((DHT22_ReadDataBit() == DHT22_DATALINE_HIGH) && (waitCounter != BOARD_TICKSPERMICROSECOND * DHT22_MCUWaitForSensorReadTimeout))
+      {
+        waitCounter++;
+      }
+      if (waitCounter == DHT22_MCUWaitForSensorReadTimeout) {
+        DHT22State = DHT22State_ReadErrorStuckAtVCC;
+        return DHT22State;
+      }
+      if (waitCounter <= BOARD_TICKSPERMICROSECOND * DHT22_MCUWaitForSensorSendZero)
+      {
+        /* zero detected */
+        DHT22_readBuffer[bitCounter % 8] &= 0xfe;
+      } else {
+        /* one detected */
+        DHT22_readBuffer[bitCounter % 8] |= 0x01;
+      }
+      DHT22_readBuffer[bitCounter % 8] = DHT22_readBuffer[bitCounter % 8] << 1;
     }
+    DHT22State = DHT22State_Init;
   }
   return DHT22State;
 }

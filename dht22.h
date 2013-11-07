@@ -17,7 +17,7 @@
 #define DHT22_NOT_OK    1
 #endif
 
-/* all times in ms */
+/* number of bits the sensor sends back */
 #define DHT22_NUMBEROFBITSFROMSENSOR            48
    
 /*******************| Type definitions |*******************************/
