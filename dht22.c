@@ -14,6 +14,8 @@ static uint8 DHT22_readBuffer[DHT22_NUMBEROFBITSFROMSENSOR / 8];
 /*******************| Function definition |****************************/
 void DHT22_init(void)
 {
+  DHT22_SetDataLineOutput();
+  DHT22_WriteDataBitHigh();
   DHT22State = DHT22State_Init;
 }
 
