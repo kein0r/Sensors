@@ -8,7 +8,7 @@
 
 /*******************| Global variables |*******************************/
 static DHT22State_t DHT22State = DHT22State_Uninit;
-static uint8 DHT22_readBuffer[DHT22_NUMBEROFBITSFROMSENSOR / 8];
+static DHT22_SensorValue_t DHT22_SensorValue;
 #ifdef DHT22_DEBUG
 /**
  * Copy of the wait counters for the communication between the sensor and
@@ -76,7 +76,8 @@ DHT22State_t DHT22_readValues(void)
       return DHT22State;
     }
     /* step 3: wait for start of transmission and receive all bits */
-    for (bitCounter = 0; bitCounter < DHT22_NUMBEROFBITSFROMSENSOR; bitCounter++)
+    bitCounter = DHT22_NUMBEROFBITSFROMSENSOR;
+    while (bitCounter--)
     {
       waitCounter = 0;
       /* wait for the line to go low again */
@@ -91,16 +92,18 @@ DHT22State_t DHT22_readValues(void)
 #ifdef DHT22_DEBUG
       DHT22_sensorBitWaitCounter[bitCounter] = waitCounter;
 #endif
-      DHT22_readBuffer[bitCounter / 8] = DHT22_readBuffer[bitCounter / 8] << 1;
+      DHT22_SensorValue.raw[bitCounter / 8] = DHT22_SensorValue.raw[bitCounter / 8] << 1;
       if (waitCounter < DHT22_MCUWaitForSensorSendZero)
       {
         /* zero detected */
-        DHT22_readBuffer[bitCounter / 8] &= 0xfe;
+        DHT22_SensorValue.raw[bitCounter / 8] &= 0xfe;
       } else {
         /* one detected */
-        DHT22_readBuffer[bitCounter / 8] |= 0x01;
+        DHT22_SensorValue.raw[bitCounter / 8] |= 0x01;
       }
     }
+    /* correct negative values for temperatur*/
+    if (DHT22_SensorValue.raw[4] & 0x80) DHT22_SensorValue.values.Temperatur *= -1;
     DHT22State = DHT22State_Init;
   }
   return DHT22State;
