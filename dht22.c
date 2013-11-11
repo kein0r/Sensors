@@ -40,7 +40,7 @@ void DHT22_init(void)
  */
 DHT22State_t DHT22_readValues(void)
 {
-  uint16 waitCounter = 0;
+  uint8 waitCounter = 0;
   uint8 bitCounter = 0;
   /* Only if the sensor was correctly initialized a reading can be done */
   if (DHT22State == DHT22State_Init)
