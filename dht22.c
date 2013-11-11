@@ -8,10 +8,21 @@
 
 /*******************| Global variables |*******************************/
 static DHT22State_t DHT22State = DHT22State_Uninit;
-/** TODO: check why modulo operator % is not supported here */
 static uint8 DHT22_readBuffer[DHT22_NUMBEROFBITSFROMSENSOR / 8];
-
-volatile uint16 tempWaitCounter[40];
+#ifdef DHT22_DEBUG
+/**
+ * Copy of the wait counters for the communication between the sensor and
+ * the MCU. These values can be used to match your MCU to the sensor and helps
+ * to configure the values in dht22_cfg.h
+*/
+volatile uint16 DHT22_sensorWaitCounter[2];
+/**
+ * Copy of the bit wait counters for the communication between the sensor and
+ * the MCU. These values can be used to match your MCU to the sensor  and helps
+ * to configure the values in dht22_cfg.h
+*/
+volatile uint16 DHT22_sensorBitWaitCounter[DHT22_NUMBEROFBITSFROMSENSOR];
+#endif
 
 /*******************| Function definition |****************************/
 void DHT22_init(void)
@@ -42,22 +53,24 @@ DHT22State_t DHT22_readValues(void)
     DHT22_WriteDataBitHigh();
     DHT22_SetDataLineInput();
     /* step 2: Wait for sensor response with low pulse and high pulse */
-    waitCounter = BOARD_TICKSPERMICROSECOND * DHT22_MCUWaitForSensorResponse;
+    waitCounter = DHT22_MCUWaitForSensorResponse;
     while (waitCounter)
     {
       if (DHT22_ReadDataBit() == DHT22_DATALINE_LOW) break;
       waitCounter--;
     }
+    DHT22_sensorWaitCounter[0] = waitCounter;
     if (waitCounter == 0) {
       DHT22State = DHT22State_ReadErrorStuckAtVCC;
       return DHT22State;
     }
-    waitCounter = BOARD_TICKSPERMICROSECOND * DHT22_MCUWaitForSensorResponse;
+    waitCounter = DHT22_MCUWaitForSensorResponse;
     while (waitCounter)
     {
       if (DHT22_ReadDataBit() == DHT22_DATALINE_HIGH) break;
       waitCounter--;
     }
+    DHT22_sensorWaitCounter[1] = waitCounter;
     if (waitCounter == 0) {
       DHT22State = DHT22State_ReadErrorStuckAtGND;
       return DHT22State;
@@ -75,8 +88,11 @@ DHT22State_t DHT22_readValues(void)
       {
         waitCounter++;
       }
-      tempWaitCounter[bitCounter] = waitCounter;
-      if (waitCounter < BOARD_TICKSPERMICROSECOND * DHT22_MCUWaitForSensorSendZero)
+#ifdef DHT22_DEBUG
+      DHT22_sensorBitWaitCounter[bitCounter] = waitCounter;
+#endif
+      DHT22_readBuffer[bitCounter / 8] = DHT22_readBuffer[bitCounter / 8] << 1;
+      if (waitCounter < DHT22_MCUWaitForSensorSendZero)
       {
         /* zero detected */
         DHT22_readBuffer[bitCounter / 8] &= 0xfe;
@@ -84,7 +100,6 @@ DHT22State_t DHT22_readValues(void)
         /* one detected */
         DHT22_readBuffer[bitCounter / 8] |= 0x01;
       }
-      DHT22_readBuffer[bitCounter / 8] = DHT22_readBuffer[bitCounter / 8] << 1;
     }
     DHT22State = DHT22State_Init;
   }
