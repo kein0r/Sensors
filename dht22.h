@@ -18,7 +18,7 @@
 #endif
 
 /* number of bits the sensor sends back */
-#define DHT22_NUMBEROFBITSFROMSENSOR            48
+#define DHT22_NUMBEROFBITSFROMSENSOR            40
    
 /*******************| Type definitions |*******************************/
 typedef enum
