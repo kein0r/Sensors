@@ -111,7 +111,7 @@ DHT22State_t DHT22_readValues(void)
       DHT22State = DHT22State_ReadErrorCRCInvalid;
       return DHT22State;
     }
-    /* correct negative values for temperatur*/
+    /* correct negative values for temperatur */
     if (DHT22_SensorValue.raw[4] & 0x80) DHT22_SensorValue.values.Temperatur *= -1;
     DHT22State = DHT22State_Init;
   }
