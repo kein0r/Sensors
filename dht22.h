@@ -28,6 +28,7 @@ typedef enum
    DHT22State_ReadInProgress,
    DHT22State_ReadErrorStuckAtVCC,
    DHT22State_ReadErrorStuckAtGND,
+   DHT22State_ReadErrorCRCInvalid
 } DHT22State_t;
 
 /**

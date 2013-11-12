@@ -76,6 +76,7 @@ DHT22State_t DHT22_readValues(void)
       return DHT22State;
     }
     /* step 3: wait for start of transmission and receive all bits */
+    /* to preserve byte order in union/struct we readout in oposite order from bit 39 -> 0 */
     bitCounter = DHT22_NUMBEROFBITSFROMSENSOR;
     while (bitCounter--)
     {
@@ -101,6 +102,14 @@ DHT22State_t DHT22_readValues(void)
         /* one detected */
         DHT22_SensorValue.raw[bitCounter / 8] |= 0x01;
       }
+    }
+    /* check CRC */
+    if (DHT22_SensorValue.raw[0] != (uint8)(DHT22_SensorValue.raw[1] + DHT22_SensorValue.raw[2] + DHT22_SensorValue.raw[3] + DHT22_SensorValue.raw[4]))
+    {
+      DHT22_SensorValue.values.Temperatur = DHT22_TemperaturInvalidValue;
+      DHT22_SensorValue.values.RelativeHumidity = DHT22_RelativeHumidityInvalidValue;
+      DHT22State = DHT22State_ReadErrorCRCInvalid;
+      return DHT22State;
     }
     /* correct negative values for temperatur*/
     if (DHT22_SensorValue.raw[4] & 0x80) DHT22_SensorValue.values.Temperatur *= -1;
