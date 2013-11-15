@@ -8,7 +8,7 @@
 
 /*******************| Global variables |*******************************/
 static DHT22State_t DHT22State = DHT22State_Uninit;
-static DHT22_SensorValue_t DHT22_SensorValue;
+DHT22_SensorValue_t DHT22_SensorValue;
 #ifdef DHT22_DEBUG
 /**
  * Copy of the wait counters for the communication between the sensor and
