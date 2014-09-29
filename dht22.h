@@ -38,11 +38,11 @@ typedef enum
 typedef union
 {
   struct {
-    uint8 CRC;
-    sint16 Temperatur;            /*!< Operating range temperature -40~80 Celsius, resolution 0.1Celsius */
-    uint16 RelativeHumidity;      /*!< Operating range humidity 0-100%RH, resolution 0.1%RH */
+    uint8_t CRC;
+    sint16_t Temperatur;            /*!< Operating range temperature -40~80 Celsius, resolution 0.1Celsius */
+    uint16_t RelativeHumidity;      /*!< Operating range humidity 0-100%RH, resolution 0.1%RH */
   } values;
-  uint8 raw[DHT22_NUMBEROFBITSFROMSENSOR / 8];
+  uint8_t raw[DHT22_NUMBEROFBITSFROMSENSOR / 8];
 } DHT22_SensorValue_t;
 
 /*******************| Global variables |*******************************/

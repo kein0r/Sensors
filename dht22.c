@@ -15,13 +15,13 @@ DHT22_SensorValue_t DHT22_SensorValue;
  * the MCU. These values can be used to match your MCU to the sensor and helps
  * to configure the values in dht22_cfg.h
 */
-volatile uint16 DHT22_sensorWaitCounter[2];
+volatile uint16_t DHT22_sensorWaitCounter[2];
 /**
  * Copy of the bit wait counters for the communication between the sensor and
  * the MCU. These values can be used to match your MCU to the sensor  and helps
  * to configure the values in dht22_cfg.h
 */
-volatile uint16 DHT22_sensorBitWaitCounter[DHT22_NUMBEROFBITSFROMSENSOR];
+volatile uint16_t DHT22_sensorBitWaitCounter[DHT22_NUMBEROFBITSFROMSENSOR];
 #endif
 
 /*******************| Function definition |****************************/
@@ -40,8 +40,8 @@ void DHT22_init(void)
  */
 DHT22State_t DHT22_readValues(void)
 {
-  uint8 waitCounter = 0;
-  uint8 bitCounter = 0;
+  uint8_t waitCounter = 0;
+  uint8_t bitCounter = 0;
   /* Only if the sensor was correctly initialized a reading can be done */
   if (DHT22State == DHT22State_Init)
   {
@@ -104,7 +104,7 @@ DHT22State_t DHT22_readValues(void)
       }
     }
     /* check CRC */
-    if (DHT22_SensorValue.raw[0] != (uint8)(DHT22_SensorValue.raw[1] + DHT22_SensorValue.raw[2] + DHT22_SensorValue.raw[3] + DHT22_SensorValue.raw[4]))
+    if (DHT22_SensorValue.raw[0] != (uint8_t)(DHT22_SensorValue.raw[1] + DHT22_SensorValue.raw[2] + DHT22_SensorValue.raw[3] + DHT22_SensorValue.raw[4]))
     {
       DHT22_SensorValue.values.Temperatur = DHT22_TemperaturInvalidValue;
       DHT22_SensorValue.values.RelativeHumidity = DHT22_RelativeHumidityInvalidValue;
