@@ -36,6 +36,9 @@ void PPD42NS_init(PPD42NS_Config_t *config)
    */
   PERCFG = PERCFG_T1CFG_ALT1;
   
+  Timer1_captureCompareChannel0(T1CCTL0_MODE_CAPTUREMODE | T1CCTL0_CAP_CAPTUREONALL);
+  Timer1_captureCompareChannel1(T1CCTL1_MODE_CAPTUREMODE | T1CCTL1_CAP_CAPTUREONALL);
+  
   Timer1_startSynchronous(T1CTL_DIV_DIV1, 0x0000);
 }
 
@@ -56,22 +59,16 @@ __near_func __interrupt void PPD42NS_inputCaptureISR(void)
 {
   uint32_t currentTimerValue;
   Timer1_t counterValue;
-  Timer1_read(&counterValue);
-  currentTimerValue = counterValue.value + PPD42NS_counterValueTotal;
   
   /* Check T1STAT for interrupt source
   The status register, T1STAT, contains the source interrupt flags for the terminal-count value event and the
   five channel compare/capture events. A source interrupt flag is set when the corresponding event occurs,
   regardless of interrupt mask bits. */
-  if (checkInterruptFlag(T1STAT, T1STAT_OVFIF) )
-  {
-    PPD42NS_counterValueTotal += 0xffff;
-    /* @TODO Add calculation of result here */
-    clearInterruptFlag(T1STAT, T1STAT_OVFIF);
-  }
   /* Channel0 -> P0.2 */
   if (checkInterruptFlag(T1STAT, T1STAT_CH0IF) )
   {
+    Timer1_readCaptureCompareChannel0(&counterValue);
+    currentTimerValue = counterValue.value + PPD42NS_counterValueTotal;
     /* Pin change from LOW -> HIGH? Sum up low occupany time */
     if (P0_2 == Px_HIGH)
     {
@@ -85,6 +82,13 @@ __near_func __interrupt void PPD42NS_inputCaptureISR(void)
     }
     /* clear source flag */
     clearInterruptFlag(T1STAT, T1STAT_CH0IF);
+  }
+  /* Overflow must be checked last in order to avoid problems when overflow and input capture happens at the same time */
+  if (checkInterruptFlag(T1STAT, T1STAT_OVFIF) )
+  {
+    PPD42NS_counterValueTotal += 0xffff;
+    /* @TODO Add calculation of result here */
+    clearInterruptFlag(T1STAT, T1STAT_OVFIF);
   } 
   /* Clear interrupt flag, will be directly set again if not all source flags were cleared */
   T1IF = 0;
