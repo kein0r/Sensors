@@ -28,13 +28,23 @@
 /*******************| Macros |*****************************************/
 
 /*******************| Type definitions |*******************************/
+typedef struct {
+  uint8_t t;
+} PPD42NS_Config_t;
+
+typedef struct {
+  uint32_t counterValueLowPulseOccupancyP1start;
+  uint32_t counterValueLowPulseOccupancyP1;             /**< Low occupancy time for P1 (1um) */        
+  uint32_t counterValueLowPulseOccupancyP2start;
+  uint32_t counterValueLowPulseOccupancyP2;             /**< Low occupancy time for P2 (2,5um) */
+} PPD42DN_CounterValues_t;
 
 /*******************| Type definitions |*******************************/
 
 /*******************| Global variables |*******************************/
 
 /*******************| Function prototypes |****************************/
-
+void PPD42NS_init(PPD42NS_Config_t *config);
 
 #endif
 /** @}*/
