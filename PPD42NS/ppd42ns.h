@@ -53,7 +53,7 @@ typedef struct {
 /*******************| Global variables |*******************************/
 
 /*******************| Function prototypes |****************************/
-void PPD42NS_init(PPD42NS_Config_t *config);
+void PPD42NS_init();
 
 #endif
 /** @}*/
