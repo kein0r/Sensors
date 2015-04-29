@@ -36,10 +36,15 @@ void PPD42NS_init(PPD42NS_Config_t *config)
    */
   PERCFG = PERCFG_T1CFG_ALT1;
   
-  Timer1_captureCompareChannel0(T1CCTL0_MODE_CAPTUREMODE | T1CCTL0_CAP_CAPTUREONALL);
-  Timer1_captureCompareChannel1(T1CCTL1_MODE_CAPTUREMODE | T1CCTL1_CAP_CAPTUREONALL);
+  /* Enable capture for channel 0 and 1 for sensor 1 including interrupt */
+  Timer1_captureCompareChannel0(T1CCTL0_IM | T1CCTL0_MODE_CAPTUREMODE | T1CCTL0_CAP_CAPTUREONALL);
+  Timer1_captureCompareChannel1(T1CCTL1_IM | T1CCTL1_MODE_CAPTUREMODE | T1CCTL1_CAP_CAPTUREONALL);
   
-  Timer1_startSynchronous(T1CTL_DIV_DIV1, 0x0000);
+  /* Enable timer 1 overflow interrupt */
+  enableInterrupt(TIMIF, TIMIF_OVFIM);
+  enableInterrupt(IEN1, IEN1_T1IE);
+  
+  Timer1_startSynchronous(T1CTL_DIV_DIV1, 0x0000);  
 }
 
 /**
