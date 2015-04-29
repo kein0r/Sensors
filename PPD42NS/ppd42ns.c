@@ -28,7 +28,7 @@ static PPD42DN_sensorValues_t PPD42NS_sensor0;
 static uint32_t PPD42NS_counterValueTotal = 0;
 
 /*******************| Function definition |****************************/
-void PPD42NS_init(PPD42NS_Config_t *config)
+void PPD42NS_init()
 {
   /* Two Timer1 input capture units will be used per Shinyei PPD43NS sensor 
    * Channel0 -> P0.2, Channel1 -> P0.3, Channel2 -> P0.4, Channel3 -> P0.5, Channel4 -> P0.6
@@ -95,7 +95,7 @@ __near_func __interrupt void PPD42NS_inputCaptureISR(void)
     PPD42NS_counterValueTotal += 0xffff;
     if (PPD42NS_counterValueTotal > PPD42NS_TIMER1_MAX)
     {
-      
+      PPD42NS_sensor0.P1.ratio = PPD42NS_sensor0.P1.counterValueLowPulseOccupancy/PPD42NS_counterValueTotal;
     }
     clearInterruptFlag(T1STAT, T1STAT_OVFIF);
   } 
