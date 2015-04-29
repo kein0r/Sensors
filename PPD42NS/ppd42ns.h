@@ -26,6 +26,11 @@
 #include <PlatformTypes.h>
    
 /*******************| Macros |*****************************************/
+/**
+ * Measuring time. Time depends on Timer1 speed which is set to 1MHz in 
+ * PPD42NS_init function 
+ */
+#define PPD42NS_TIMER1_MAX      ((uint32_t)30 * 1000000)
 
 /*******************| Type definitions |*******************************/
 typedef struct {
@@ -33,11 +38,15 @@ typedef struct {
 } PPD42NS_Config_t;
 
 typedef struct {
-  uint32_t counterValueLowPulseOccupancyP1start;
-  uint32_t counterValueLowPulseOccupancyP1;             /**< Low occupancy time for P1 (1um) */        
-  uint32_t counterValueLowPulseOccupancyP2start;
-  uint32_t counterValueLowPulseOccupancyP2;             /**< Low occupancy time for P2 (2,5um) */
-} PPD42DN_CounterValues_t;
+  uint32_t counterValueLowPulseOccupancystart;  /**< Time for trailing edge (HIGH -> LOW) */
+  uint32_t counterValueLowPulseOccupancy;       /**< total low occupancy time for */  
+  float ratio;
+} PPD42DN_singleReadout_t;
+
+typedef struct {
+  PPD42DN_singleReadout_t P1;                   /**< Values for P1 (1um) */  
+  PPD42DN_singleReadout_t P2;                   /**< Values for P2 (2.5um) */  
+} PPD42DN_sensorValues_t;
 
 /*******************| Type definitions |*******************************/
 

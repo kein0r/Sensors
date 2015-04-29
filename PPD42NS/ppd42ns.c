@@ -20,7 +20,7 @@
 
 /*******************| Global variables |*******************************/
 /** @todo add more sensors here */
-static PPD42DN_CounterValues_t PPD42NS_sensor0;
+static PPD42DN_sensorValues_t PPD42NS_sensor0;
 
 /**
  * Number of timer1 overflows during this measurement period
@@ -44,7 +44,8 @@ void PPD42NS_init(PPD42NS_Config_t *config)
   enableInterrupt(TIMIF, TIMIF_OVFIM);
   enableInterrupt(IEN1, IEN1_T1IE);
   
-  Timer1_startSynchronous(T1CTL_DIV_DIV1, 0x0000);  
+  /* Start timer1 with 1MHz */
+  Timer1_startSynchronous(T1CTL_DIV_DIV32, 0x0000);  
 }
 
 /**
@@ -78,12 +79,12 @@ __near_func __interrupt void PPD42NS_inputCaptureISR(void)
     if (P0_2 == Px_HIGH)
     {
       /* @todo: According to datasheet max. low pulse is 90ms. Thus, we should ignore everything above? */
-      PPD42NS_sensor0.counterValueLowPulseOccupancyP1 += (currentTimerValue - PPD42NS_sensor0.counterValueLowPulseOccupancyP1start);
+      PPD42NS_sensor0.P1.counterValueLowPulseOccupancy += (currentTimerValue - PPD42NS_sensor0.P1.counterValueLowPulseOccupancystart);
     }
     /* Pin change from HIGH -> LOW? Remember counter value for later low occupancy time calculation */
     if (P0_2 == Px_LOW)
     {
-      PPD42NS_sensor0.counterValueLowPulseOccupancyP1start = currentTimerValue;
+      PPD42NS_sensor0.P1.counterValueLowPulseOccupancystart = currentTimerValue;
     }
     /* clear source flag */
     clearInterruptFlag(T1STAT, T1STAT_CH0IF);
@@ -92,7 +93,10 @@ __near_func __interrupt void PPD42NS_inputCaptureISR(void)
   if (checkInterruptFlag(T1STAT, T1STAT_OVFIF) )
   {
     PPD42NS_counterValueTotal += 0xffff;
-    /* @TODO Add calculation of result here */
+    if (PPD42NS_counterValueTotal > PPD42NS_TIMER1_MAX)
+    {
+      
+    }
     clearInterruptFlag(T1STAT, T1STAT_OVFIF);
   } 
   /* Clear interrupt flag, will be directly set again if not all source flags were cleared */
