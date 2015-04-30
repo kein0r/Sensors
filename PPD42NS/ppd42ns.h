@@ -54,6 +54,7 @@ typedef struct {
 
 /*******************| Function prototypes |****************************/
 void PPD42NS_init();
+void PPD42NS_waitForNextSenorValue();
 
 #endif
 /** @}*/

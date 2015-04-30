@@ -1,16 +1,17 @@
 /*******************| Inclusions |*************************************/
 #include "ppd42ns.h"
 #include <ioCC2530.h>
+#include <stdbool.h>
 #include <CC253x.h>
 #include <Timer1.h>
 /**
  * @brief Module for Shinyei PPD42NS sensor
  * Measurement procedure:
- * - Timer one will run until a given number of overflows are counted
+ * - Timer one will run until a given number of overflows is reached
  * - During this time positive and negative input capture interrupts are
  *   used to sum up low occupancy time
- * Connecting the sensor: P1 outpur correspnd to 1um particles and P2 output 
- * corresponds to 2,5um particles. P1 shoud be connector to P0.2 (input capture
+ * Connecting the sensor: P1 output corresponds to 1um particles and P2 output 
+ * corresponds to 2,5um particles. P1 shoud be connected to P0.2 (input capture
  * unit 0, P2 should be conncected to P0.3(input capture unit 1).
 */
 
@@ -26,6 +27,8 @@ static PPD42DN_sensorValues_t PPD42NS_sensor0;
  * Number of timer1 overflows during this measurement period
  */
 static uint32_t PPD42NS_counterValueTotal = 0;
+
+static bool PPD42NS_nextSensorValueAvailable = false;
 
 /*******************| Function definition |****************************/
 void PPD42NS_init()
@@ -58,7 +61,7 @@ void PPD42NS_init()
  * This functions servers two purposes
  * 1. In case of input capture interrupt the function will sum-up the low occupance time
  * 2. In case of overflow interrupt the function will add and if a given
- * number is reached will calculate the ration between low occupancy and total time.
+ * number is reached will calculate the ratio between low occupancy and total time.
 */
 #pragma vector = T1_VECTOR
 __near_func __interrupt void PPD42NS_inputCaptureISR(void)
@@ -96,9 +99,28 @@ __near_func __interrupt void PPD42NS_inputCaptureISR(void)
     if (PPD42NS_counterValueTotal > PPD42NS_TIMER1_MAX)
     {
       PPD42NS_sensor0.P1.ratio = PPD42NS_sensor0.P1.counterValueLowPulseOccupancy/PPD42NS_counterValueTotal;
+      PPD42NS_nextSensorValueAvailable = true;
     }
     clearInterruptFlag(T1STAT, T1STAT_OVFIF);
   } 
   /* Clear interrupt flag, will be directly set again if not all source flags were cleared */
   T1IF = 0;
+}
+
+/**
+ * Blocking wait until new sensor value is ready.
+ */
+void PPD42NS_waitForNextSenorValue()
+{
+  /* Assumption PPD42NS_nextSensorValueAvailable will be writte atomic */
+  while(!PPD42NS_nextSensorValueAvailable)
+  {
+    nop();
+  }
+  PPD42NS_nextSensorValueAvailable = false;
+}
+
+float PPD42NS_readSensorValue()
+{
+  return 
 }
