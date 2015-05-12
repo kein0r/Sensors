@@ -122,5 +122,5 @@ void PPD42NS_waitForNextSenorValue()
 
 float PPD42NS_readSensorValue()
 {
-  return 
+  return 0.1;
 }
