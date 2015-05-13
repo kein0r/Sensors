@@ -24,6 +24,9 @@
 /*******************| Global variables |*******************************/
 /** @todo add more sensors here */
 static PPD42DN_sensorValues_t PPD42NS_sensor0;
+#ifdef PPD42NS_SENSOR1CONNECTED
+static PPD42DN_sensorValues_t PPD42NS_sensor1;
+#endif
 
 /**
  * Number of timer1 overflows during this measurement period
@@ -115,7 +118,7 @@ __near_func __interrupt void PPD42NS_inputCaptureISR(void)
   /* Channel1 -> P0.3 */
   if (checkInterruptFlag(T1STAT, T1STAT_CH1IF) )
   {
-    Timer1_readCaptureCompareChannel0(&counterValue);
+    Timer1_readCaptureCompareChannel1(&counterValue);
     currentTimerValue = counterValue.value + PPD42NS_counterValueTotal;
     /* Pin change from LOW -> HIGH? Sum up low occupany time */
     if (P0_3 == Px_HIGH)
@@ -131,6 +134,46 @@ __near_func __interrupt void PPD42NS_inputCaptureISR(void)
     /* clear source flag */
     clearInterruptFlag(T1STAT, T1STAT_CH1IF);
   }
+#ifdef PPD42NS_SENSOR1CONNECTED
+  /* Channel2 -> P0.4 */
+  if (checkInterruptFlag(T1STAT, T1STAT_CH2IF) )
+  {
+    Timer1_readCaptureCompareChannel2(&counterValue);
+    currentTimerValue = counterValue.value + PPD42NS_counterValueTotal;
+    /* Pin change from LOW -> HIGH? Sum up low occupany time */
+    if (P0_4 == Px_HIGH)
+    {
+      /* @todo: According to datasheet max. low pulse is 90ms. Thus, we should ignore everything above? */
+      PPD42NS_sensor1.P1.counterValueLowPulseOccupancy += (currentTimerValue - PPD42NS_sensor1.P1.counterValueLowPulseOccupancystart);
+    }
+    /* Pin change from HIGH -> LOW? Remember counter value for later low occupancy time calculation */
+    if (P0_4 == Px_LOW)
+    {
+      PPD42NS_sensor1.P1.counterValueLowPulseOccupancystart = currentTimerValue;
+    }
+    /* clear source flag */
+    clearInterruptFlag(T1STAT, T1STAT_CH2IF);
+  }
+  /* Channel3 -> P0.5 */
+  if (checkInterruptFlag(T1STAT, T1STAT_CH3IF) )
+  {
+    Timer1_readCaptureCompareChannel3(&counterValue);
+    currentTimerValue = counterValue.value + PPD42NS_counterValueTotal;
+    /* Pin change from LOW -> HIGH? Sum up low occupany time */
+    if (P0_5 == Px_HIGH)
+    {
+      /* @todo: According to datasheet max. low pulse is 90ms. Thus, we should ignore everything above? */
+      PPD42NS_sensor1.P2.counterValueLowPulseOccupancy += (currentTimerValue - PPD42NS_sensor1.P2.counterValueLowPulseOccupancystart);
+    }
+    /* Pin change from HIGH -> LOW? Remember counter value for later low occupancy time calculation */
+    if (P0_5 == Px_LOW)
+    {
+      PPD42NS_sensor1.P2.counterValueLowPulseOccupancystart = currentTimerValue;
+    }
+    /* clear source flag */
+    clearInterruptFlag(T1STAT, T1STAT_CH3IF);
+  }
+#endif
   /* Overflow must be checked last in order to avoid problems when overflow and input capture happens at the same time */
   if (checkInterruptFlag(T1STAT, T1STAT_OVFIF) )
   {
@@ -201,7 +244,7 @@ float PPD42NS_readSensor0P2Value()
 float PPD42NS_readSensor1P1Value()
 {
   /* @todo transform sensor value to physical value */
-  return PPD42NS_sensor0.P1.ratio;
+  return PPD42NS_sensor1.P1.ratio;
 }
 
 /**
@@ -214,6 +257,6 @@ float PPD42NS_readSensor1P1Value()
 float PPD42NS_readSensor1P2Value()
 {
   /* @todo transform sensor value to physical value */
-  return PPD42NS_sensor0.P2.ratio;
+  return PPD42NS_sensor1.P2.ratio;
 }
 #endif
