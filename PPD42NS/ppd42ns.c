@@ -1,5 +1,6 @@
 /*******************| Inclusions |*************************************/
 #include "ppd42ns.h"
+#include "Config.h"
 #include <ioCC2530.h>
 #include <stdbool.h>
 #include <CC253x.h>
@@ -34,6 +35,10 @@ static bool PPD42NS_nextSensorValueAvailable = false;
 /*******************| Function definition |****************************/
 void PPD42NS_init()
 {
+  /* Initialize values for measurement */
+  PPD42NS_sensor0.P1.counterValueLowPulseOccupancy = 0;
+  PPD42NS_sensor0.P2.counterValueLowPulseOccupancy = 0;
+  
   /* Two Timer1 input capture units will be used per Shinyei PPD43NS sensor 
    * Channel0 -> P0.2, Channel1 -> P0.3, Channel2 -> P0.4, Channel3 -> P0.5, Channel4 -> P0.6
    * Each Shinyei senor is using two channel.
@@ -107,13 +112,37 @@ __near_func __interrupt void PPD42NS_inputCaptureISR(void)
     /* clear source flag */
     clearInterruptFlag(T1STAT, T1STAT_CH0IF);
   }
+  /* Channel1 -> P0.3 */
+  if (checkInterruptFlag(T1STAT, T1STAT_CH1IF) )
+  {
+    Timer1_readCaptureCompareChannel0(&counterValue);
+    currentTimerValue = counterValue.value + PPD42NS_counterValueTotal;
+    /* Pin change from LOW -> HIGH? Sum up low occupany time */
+    if (P0_3 == Px_HIGH)
+    {
+      /* @todo: According to datasheet max. low pulse is 90ms. Thus, we should ignore everything above? */
+      PPD42NS_sensor0.P2.counterValueLowPulseOccupancy += (currentTimerValue - PPD42NS_sensor0.P2.counterValueLowPulseOccupancystart);
+    }
+    /* Pin change from HIGH -> LOW? Remember counter value for later low occupancy time calculation */
+    if (P0_3 == Px_LOW)
+    {
+      PPD42NS_sensor0.P2.counterValueLowPulseOccupancystart = currentTimerValue;
+    }
+    /* clear source flag */
+    clearInterruptFlag(T1STAT, T1STAT_CH1IF);
+  }
   /* Overflow must be checked last in order to avoid problems when overflow and input capture happens at the same time */
   if (checkInterruptFlag(T1STAT, T1STAT_OVFIF) )
   {
     PPD42NS_counterValueTotal += 0xffff;
     if (PPD42NS_counterValueTotal > PPD42NS_TIMER1_MAX)
     {
-      PPD42NS_sensor0.P1.ratio = PPD42NS_sensor0.P1.counterValueLowPulseOccupancy/PPD42NS_counterValueTotal;
+      /* Calculate ratio */
+      PPD42NS_sensor0.P1.ratio = (float)PPD42NS_sensor0.P1.counterValueLowPulseOccupancy/PPD42NS_counterValueTotal;
+      PPD42NS_sensor0.P2.ratio = (float)PPD42NS_sensor0.P2.counterValueLowPulseOccupancy/PPD42NS_counterValueTotal;
+      /* reset values for next measurement */
+      PPD42NS_sensor0.P1.counterValueLowPulseOccupancy = 0;
+      PPD42NS_sensor0.P2.counterValueLowPulseOccupancy = 0;
       PPD42NS_nextSensorValueAvailable = true;
     }
     clearInterruptFlag(T1STAT, T1STAT_OVFIF);
@@ -135,7 +164,56 @@ void PPD42NS_waitForNextSenorValue()
   PPD42NS_nextSensorValueAvailable = false;
 }
 
-float PPD42NS_readSensorValue()
+/**
+ * Readout function for PPD42NS sensor values. The values are transformed from
+ * raw (ration between low occupancy and total length) to physical (particle/m^3).
+ * For each sensor (Sensor0, Sensor1) and channel (P1, P2) a separate read-out
+ * function is provided.
+ * @return particle concentration in particle/m^3
+ */
+float PPD42NS_readSensor0P1Value()
 {
-  return 0.1;
+  /* @todo transform sensor value to physical value */
+  return PPD42NS_sensor0.P1.ratio;
 }
+
+/**
+ * Readout function for PPD42NS sensor values. The values are transformed from
+ * raw (ration between low occupancy and total length) to physical (particle/m^3).
+ * For each sensor (Sensor0, Sensor1) and channel (P1, P2) a separate read-out
+ * function is provided.
+ * @return particle concentration in particle/m^3
+ */
+float PPD42NS_readSensor0P2Value()
+{
+  /* @todo transform sensor value to physical value */
+  return PPD42NS_sensor0.P2.ratio;
+}
+
+#ifdef PPD42NS_SENSOR1CONNECTED
+/**
+ * Readout function for PPD42NS sensor values. The values are transformed from
+ * raw (ration between low occupancy and total length) to physical (particle/m^3).
+ * For each sensor (Sensor0, Sensor1) and channel (P1, P2) a separate read-out
+ * function is provided.
+ * @return particle concentration in particle/m^3
+ */
+float PPD42NS_readSensor1P1Value()
+{
+  /* @todo transform sensor value to physical value */
+  return PPD42NS_sensor0.P1.ratio;
+}
+
+/**
+ * Readout function for PPD42NS sensor values. The values are transformed from
+ * raw (ration between low occupancy and total length) to physical (particle/m^3).
+ * For each sensor (Sensor0, Sensor1) and channel (P1, P2) a separate read-out
+ * function is provided.
+ * @return particle concentration in particle/m^3
+ */
+float PPD42NS_readSensor1P2Value()
+{
+  /* @todo transform sensor value to physical value */
+  return PPD42NS_sensor0.P2.ratio;
+}
+#endif
