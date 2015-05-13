@@ -39,6 +39,13 @@ void PPD42NS_init()
    */
   PERCFG = PERCFG_T1CFG_ALT1;
   
+  /* No need to configure PIN direction because "When a channel is configured as an input 
+   * capture channel, the I/O pin associated with that channel is configured as an input.
+   * However, "Before an I/O pin can be used by the timer, the required I/O pin must be 
+   * configured as a Timer 1 peripheral pin.
+   */
+  
+  
   /* Enable capture for channel 0 and 1 for sensor 1 including interrupt */
   Timer1_captureCompareChannel0(T1CCTL0_IM | T1CCTL0_MODE_CAPTUREMODE | T1CCTL0_CAP_CAPTUREONALL);
   Timer1_captureCompareChannel1(T1CCTL1_IM | T1CCTL1_MODE_CAPTUREMODE | T1CCTL1_CAP_CAPTUREONALL);
@@ -47,8 +54,8 @@ void PPD42NS_init()
   enableInterrupt(TIMIF, TIMIF_OVFIM);
   enableInterrupt(IEN1, IEN1_T1IE);
   
-  /* Start timer1 with 1MHz */
-  Timer1_startSynchronous(T1CTL_DIV_DIV32, 0x0000);  
+  /* Start timer1 with 1MHz and start timer 1 in free running mode */
+  Timer1_startSynchronous(T1CTL_DIV_DIV32 | T1CTL_MODE_FREERUNNING, 0x0000);  
 }
 
 /**
