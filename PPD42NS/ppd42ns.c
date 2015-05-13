@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <CC253x.h>
 #include <Timer1.h>
+
 /**
  * @brief Module for Shinyei PPD42NS sensor
  * Measurement procedure:
@@ -45,6 +46,13 @@ void PPD42NS_init()
    * configured as a Timer 1 peripheral pin.
    */
   P0SEL |= P0SEL_SELP0_2_PERIPHERALFUNCTION | P0SEL_SELP0_3_PERIPHERALFUNCTION | P0SEL_SELP0_4_PERIPHERALFUNCTION | P0SEL_SELP0_5_PERIPHERALFUNCTION;
+  
+  /* Set priority of peripherals to 
+   * 1st priority: Timer 1 channels 0-1
+   * 2nd priority: USART 1
+   * 3rd priority: USART 0
+   * 4th priority: Timer 1 channels 2-3 */
+  P2DIR = P2DIR_PRIP0_TIMER1CH01USART1USART0TIMER1CH23;
   
   /* Enable capture for channel 0 and 1 for sensor 1 including interrupt */
   Timer1_captureCompareChannel0(T1CCTL0_IM | T1CCTL0_MODE_CAPTUREMODE | T1CCTL0_CAP_CAPTUREONALL);
