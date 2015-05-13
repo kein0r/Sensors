@@ -44,7 +44,7 @@ void PPD42NS_init()
    * However, "Before an I/O pin can be used by the timer, the required I/O pin must be 
    * configured as a Timer 1 peripheral pin.
    */
-  
+  P0SEL = P0SEL_SELP0_2_PERIPHERALFUNCTION | P0SEL_SELP0_3_PERIPHERALFUNCTION | P0SEL_SELP0_4_PERIPHERALFUNCTION | P0SEL_SELP0_5_PERIPHERALFUNCTION;
   
   /* Enable capture for channel 0 and 1 for sensor 1 including interrupt */
   Timer1_captureCompareChannel0(T1CCTL0_IM | T1CCTL0_MODE_CAPTUREMODE | T1CCTL0_CAP_CAPTUREONALL);
