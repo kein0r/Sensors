@@ -55,8 +55,8 @@ typedef struct {
 /*******************| Function prototypes |****************************/
 void PPD42NS_init();
 void PPD42NS_waitForNextSenorValue();
-float PPD42NS_readSensor0P1Value();
-float PPD42NS_readSensor0P2Value();
+void PPD42NS_readSensor0P1Value(float *value);
+void PPD42NS_readSensor0P2Value(float *value);
 #ifdef PPD42NS_SENSOR1CONNECTED
 float PPD42NS_readSensor1P1Value();
 float PPD42NS_readSensor1P2Value();

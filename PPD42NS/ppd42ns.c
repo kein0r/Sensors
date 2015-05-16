@@ -214,10 +214,12 @@ void PPD42NS_waitForNextSenorValue()
  * function is provided.
  * @return particle concentration in particle/m^3
  */
-float PPD42NS_readSensor0P1Value()
+void PPD42NS_readSensor0P1Value(float *value)
 {
+  disableInterrupt(IEN1, IEN1_T1IE);
   /* @todo transform sensor value to physical value */
-  return PPD42NS_sensor0.P1.ratio;
+  *value = PPD42NS_sensor0.P1.ratio;
+  enableInterrupt(IEN1, IEN1_T1IE);
 }
 
 /**
@@ -227,10 +229,12 @@ float PPD42NS_readSensor0P1Value()
  * function is provided.
  * @return particle concentration in particle/m^3
  */
-float PPD42NS_readSensor0P2Value()
+void PPD42NS_readSensor0P2Value(float *value)
 {
+  disableInterrupt(IEN1, IEN1_T1IE);
   /* @todo transform sensor value to physical value */
-  return PPD42NS_sensor0.P2.ratio;
+  *value = PPD42NS_sensor0.P2.ratio;
+  enableInterrupt(IEN1, IEN1_T1IE);
 }
 
 #ifdef PPD42NS_SENSOR1CONNECTED
