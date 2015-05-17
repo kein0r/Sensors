@@ -49,9 +49,9 @@ void PPD42NS_init()
   PERCFG |= PERCFG_T1CFG_ALT1;
   
   /* No need to configure PIN direction because "When a channel is configured as an input 
-   * capture channel, the I/O pin associated with that channel is configured as an input.
+   * capture channel, the I/O pin associated with that channel is configured as an input."
    * However, "Before an I/O pin can be used by the timer, the required I/O pin must be 
-   * configured as a Timer 1 peripheral pin.
+   * configured as a Timer 1 peripheral pin."
    */
   P0SEL |= P0SEL_SELP0_2_PERIPHERALFUNCTION | P0SEL_SELP0_3_PERIPHERALFUNCTION | P0SEL_SELP0_4_PERIPHERALFUNCTION | P0SEL_SELP0_5_PERIPHERALFUNCTION;
   
@@ -65,12 +65,16 @@ void PPD42NS_init()
   /* Enable capture for channel 0 and 1 for sensor 1 including interrupt */
   Timer1_captureCompareChannel0(T1CCTL0_IM | T1CCTL0_MODE_CAPTUREMODE | T1CCTL0_CAP_CAPTUREONALL);
   Timer1_captureCompareChannel1(T1CCTL1_IM | T1CCTL1_MODE_CAPTUREMODE | T1CCTL1_CAP_CAPTUREONALL);
+#ifdef PPD42NS_SENSOR1CONNECTED
+  Timer1_captureCompareChannel2(T1CCTL2_IM | T1CCTL2_MODE_CAPTUREMODE | T1CCTL2_CAP_CAPTUREONALL);
+  Timer1_captureCompareChannel3(T1CCTL3_IM | T1CCTL3_MODE_CAPTUREMODE | T1CCTL3_CAP_CAPTUREONALL);
+#endif
   
   /* Enable timer 1 overflow interrupt */
   enableInterrupt(TIMIF, TIMIF_OVFIM);
   enableInterrupt(IEN1, IEN1_T1IE);
   
-  /* Start timer1 with 1MHz and start timer 1 in free running mode */
+  /* Start timer1 with 1MHz (Divide by 32) and start timer 1 in free running mode */
   Timer1_startSynchronous(T1CTL_DIV_DIV32 | T1CTL_MODE_FREERUNNING, 0x0000);  
 }
 
